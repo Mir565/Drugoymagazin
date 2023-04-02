@@ -13,12 +13,8 @@ app.use(cookieParser(process.env.SESSION));
 app.use(session({
     secret: process.env.SESSION,
     resave: false,
-    saveUninitialized: false,
-    store: new FileStore({
-        path: "/tmp/sessions/",
-        useAsync: true
-    }),
-    cookie: { maxAge: 3600000, secure: false, httpOnly: false }
+    saveUninitialized: true,
+    cookie: { maxAge: 1000 * 60 * 60 * 24, secure: false, httpOnly: false }
 }))
 
 

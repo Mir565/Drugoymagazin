@@ -1,4 +1,4 @@
-router.get('/calcbyday',async(req,res)=>{
+router.get('/calcbyday',checker,async(req,res)=>{
   console.log(req.query)
     if ("date" in req.query){   
 

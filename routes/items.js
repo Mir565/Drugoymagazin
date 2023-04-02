@@ -1,4 +1,4 @@
-router.get('/add/item', async (req, res) => {
+router.get('/add/item',checker, async (req, res) => {
     const items = await RunSQL("SELECT * from Products pr  join filial_count fc on pr.product_id=fc.product_id  where fc.user_id=? limit 0",[req.session.user_id]);
     const organs = await RunSQL("SELECT * from organizations")
     res.render('updateproduct', {
@@ -6,7 +6,7 @@ router.get('/add/item', async (req, res) => {
         organs: organs
     })
 })
-router.post('/add/item', async(req, res) => {
+router.post('/add/item', checker,async(req, res) => {
     const {allid, minusName, minusCount, minusPayment, bazanarx, barkod, idfornews, organid, curiername, summa } = req.body;
     console.log(allid)
     let inserting = []
@@ -44,7 +44,7 @@ router.post('/add/item', async(req, res) => {
     console.log(insertfortranzall)
     res.json([]);
 })
-router.get('/search/item', async (req, res) => {
+router.get('/search/item',checker, async (req, res) => {
     const item = await RunSQLOne("Select * from products pr join filial_count fc on fc.product_id=pr.product_id  where barcode=? and fc.pr_user_id=?", [req.query.barcode,req.session.user_id])
     if (item) {
         res.json(item);
@@ -52,7 +52,7 @@ router.get('/search/item', async (req, res) => {
         res.json({})
     }
 })
-router.get('/search/itemText', async (req, res) => {
+router.get('/search/itemText',checker, async (req, res) => {
     const item = await RunSQL("Select * from products pr join filial_count fc on fc.product_id=pr.product_id  where fc.pr_user_id=? and  name like ? limit 20", [req.session.user_id,"%" + req.query.name + "%"])
     if (item) {
         res.json(item);
@@ -60,7 +60,7 @@ router.get('/search/itemText', async (req, res) => {
         res.json({})
     }
 })
-router.get('/search/itemor', async (req, res) => {
+router.get('/search/itemor',checker, async (req, res) => {
     const item = await RunSQL("Select * from products pr join filial_count fc on fc.product_id=pr.product_id where fc.pr_user_id=? and (barcode like ? or name like ?)limit 100", [req.session.user_id,"%" + req.query.barcode + "%", "%" + req.query.barcode + "%"])
     if (item) {
         res.json(item);
@@ -68,21 +68,26 @@ router.get('/search/itemor', async (req, res) => {
         res.json({})
     }
 })
-router.get('/get/barkod', async (req, res) => {
+router.get('/get/barkod',checker, async (req, res) => {
     res.render('barkod', {
         barkod: req.query.barkod,
         name: req.query.name,
         price: req.query.price
     })
 })
-router.get('/update/item', async (req, res) => {
+router.get('/update/item',checker, async (req, res) => {
+    if (req.session.rol!="admin"){
+        res.render("404")
+
+    }else{
     const data = await RunSQL("SELECT * FROM  products pr join filial_count fc on pr.product_id=fc.product_id where fc.pr_user_id=? and fc.product_id=?", [req.session.user_id,req.query.id])
     console.log(data)
     res.render('updateitem', {
         data: data
     })
+}
 })
-router.post('/update/item', async (req, res) => {
+router.post('/update/item',checker, async (req, res) => {
     console.log(req.body)
     const { name, price, sell_price, barkod, pr_count } = req.body;
     const data = await RunSQL('UPDATE products set name=?,price=?,sell_price=?,barcode=? where product_id=?', [name, price, sell_price, barkod, req.query.id])
@@ -101,7 +106,7 @@ router.get('/get/items', checker,async (req, res) => {
         count: count.cnt
     })
 })
-router.get('/sold/items', async (req, res) => {
+router.get('/sold/items',checker, async (req, res) => {
     const alltranz = await RunSQL("SELECT tranzfilial.cr_date,pr.name,tranzfilial.product_id,sum(tranzfilial.pr_count) as pr_count from tranzfilial  join products pr on pr.product_id=tranzfilial.product_id where (DATE(tranzfilial.cr_date)=? and tranzfilial.magid=?)   group by tranzfilial.product_id  limit 100 offset ?", [req.query.date,req.session.user_id,(parseInt(req.query.getpage) - 1) * 100])
     console.log(alltranz,req.session.user_id)
     const count = await RunSQLOne("SELECT count(*) as cnt from tranzfilial  join products pr on pr.product_id=tranzfilial.product_id where DATE(tranzfilial.cr_date)=? and tranzfilial.magid=?   group by tranzfilial.product_id", [req.query.date,req.session.user_id])
@@ -120,7 +125,7 @@ router.get('/sold/items', async (req, res) => {
     })
 }
 })
-router.get('/sold/itemsinfo',async(req,res)=>{
+router.get('/sold/itemsinfo',checker,async(req,res)=>{
     const alltranz=await RunSQL("SELECT mag.*,users.email,pr.name FROM tranzfilial mag join users on users.user_id=mag.magid join products pr on pr.product_id=mag.product_id  where mag.product_id=? and DATE(mag.cr_date)=? and mag.magid=? limit 100 offset ?",[req.query.product_id,req.query.date,req.session.user_id,(parseInt(req.query.getpage)-1)*100])
     const count=await RunSQLOne('SELECT count(*) as cnt FROM tranzfilial mag join users on users.user_id=mag.magid join products pr on pr.product_id=mag.product_id  where mag.product_id=? and DATE(mag.cr_date)=? and mag.magid=?',[req.query.product_id,req.query.date,req.session.user_id])
     console.log(count)

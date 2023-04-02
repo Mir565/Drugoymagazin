@@ -1,4 +1,4 @@
-router.get('/get/sell',async(req,res)=>{
+router.get('/get/sell',checker,async(req,res)=>{
     const items =[]
     const organs=await RunSQL("SELECT * from users")
     res.render('sell',{
@@ -6,7 +6,7 @@ router.get('/get/sell',async(req,res)=>{
         organs:organs
     })
 })
-router.post('/add/sell',async(req,res)=>{
+router.post('/add/sell',checker,async(req,res)=>{
     console.log(req.body)
     console.log(req.session.user_id)
     const{pulkochrish,plastik,naqd,minusName,minusCount,minusPayment,bazanarx,barkod,idfornews,organid,curiername,summa,allid}=req.body;
